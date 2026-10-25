@@ -1,4 +1,0 @@
-streamlit
-transformers==4.57.3
-torch
-sentencepiece
