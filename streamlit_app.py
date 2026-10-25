@@ -10,130 +10,102 @@ st.title("🤗 Hugging Face Pipelines")
 st.write("Summarization, Translation, Sentiment Analysis and Question Answering")
 
 
-@st.cache_resource
-def load_models():
-
-    summarizer = pipeline(
-        "summarization",
-        model="sshleifer/distilbart-cnn-12-6"
-    )
-
-    french_translator = pipeline(
-        "translation",
-        model="Helsinki-NLP/opus-mt-en-fr"
-    )
-
-    german_translator = pipeline(
-        "translation",
-        model="Helsinki-NLP/opus-mt-en-de"
-    )
-
-    hindi_translator = pipeline(
-        "translation",
-        model="Helsinki-NLP/opus-mt-en-hi"
-    )
-
-    sentiment = pipeline(
-        "sentiment-analysis"
-    )
-
-    question_answerer = pipeline(
-        "question-answering",
-        model="distilbert-base-cased-distilled-squad"
-    )
-
-    return (
-        summarizer,
-        french_translator,
-        german_translator,
-        hindi_translator,
-        sentiment,
-        question_answerer
-    )
-
-
-(
-    summarizer,
-    french_translator,
-    german_translator,
-    hindi_translator,
-    sentiment,
-    question_answerer
-) = load_models()
-
-
-option = st.selectbox(
-    "Choose a task",
-    [
-        "Summarization",
-        "Translation",
-        "Sentiment Analysis",
-        "Question Answering"
-    ]
-)
-
-
 # Summarization
-if option == "Summarization":
+if st.button("Summarization"):
 
-    text = st.text_area("Enter text to summarize")
+    text = st.text_area("Enter text to summarize", key="summary_text")
 
-    if st.button("Summarize"):
+    if st.button("Summarize", key="summarize"):
 
         if text:
 
-            result = summarizer(
-                text,
-                max_length=80,
-                min_length=10,
-                do_sample=False
-            )
+            with st.spinner("Loading summarization model..."):
+
+                summarizer = pipeline(
+                    "summarization",
+                    model="sshleifer/distilbart-cnn-12-6"
+                )
+
+                result = summarizer(
+                    text,
+                    max_length=80,
+                    min_length=10,
+                    do_sample=False,
+                    truncation=True
+                )
 
             st.subheader("Summary")
             st.write(result[0]["summary_text"])
 
+        else:
+            st.warning("Please enter some text.")
+
 
 # Translation
-elif option == "Translation":
+elif st.button("Translation"):
 
     language = st.selectbox(
         "Choose target language",
-        [
-            "French",
-            "German",
-            "Hindi"
-        ]
+        ["French", "German", "Hindi"]
     )
 
-    text = st.text_area("Enter English text")
+    text = st.text_area(
+        "Enter English text",
+        key="translation_text"
+    )
 
-    if st.button("Translate"):
+    if st.button("Translate", key="translate"):
 
         if text:
 
-            if language == "French":
-                result = french_translator(text)
+            with st.spinner("Loading translation model..."):
 
-            elif language == "German":
-                result = german_translator(text)
+                if language == "French":
+                    translator = pipeline(
+                        "translation",
+                        model="Helsinki-NLP/opus-mt-en-fr"
+                    )
 
-            else:
-                result = hindi_translator(text)
+                elif language == "German":
+                    translator = pipeline(
+                        "translation",
+                        model="Helsinki-NLP/opus-mt-en-de"
+                    )
+
+                else:
+                    translator = pipeline(
+                        "translation",
+                        model="Helsinki-NLP/opus-mt-en-hi"
+                    )
+
+                result = translator(text)
 
             st.subheader("Translation")
             st.write(result[0]["translation_text"])
 
+        else:
+            st.warning("Please enter some text.")
+
 
 # Sentiment Analysis
-elif option == "Sentiment Analysis":
+elif st.button("Sentiment Analysis"):
 
-    text = st.text_area("Enter text")
+    text = st.text_area(
+        "Enter text",
+        key="sentiment_text"
+    )
 
-    if st.button("Analyze Sentiment"):
+    if st.button("Analyze Sentiment", key="sentiment"):
 
         if text:
 
-            result = sentiment(text)
+            with st.spinner("Loading sentiment model..."):
+
+                sentiment = pipeline(
+                    "sentiment-analysis"
+                )
+
+                result = sentiment(text)
 
             st.subheader("Sentiment")
             st.write("Label:", result[0]["label"])
@@ -142,22 +114,48 @@ elif option == "Sentiment Analysis":
                 round(result[0]["score"], 4)
             )
 
+        else:
+            st.warning("Please enter some text.")
+
 
 # Question Answering
-elif option == "Question Answering":
+elif st.button("Question Answering"):
 
-    context = st.text_area("Enter context")
+    context = st.text_area(
+        "Enter context",
+        key="context"
+    )
 
-    question = st.text_input("Enter your question")
+    question = st.text_input(
+        "Enter your question",
+        key="question"
+    )
 
-    if st.button("Get Answer"):
+    if st.button("Get Answer", key="answer"):
 
         if context and question:
 
-            result = question_answerer(
-                question=question,
-                context=context
-            )
+            with st.spinner("Loading question answering model..."):
+
+                question_answerer = pipeline(
+                    "question-answering",
+                    model="distilbert-base-cased-distilled-squad"
+                )
+
+                result = question_answerer(
+                    question=question,
+                    context=context
+                )
 
             st.subheader("Answer")
             st.write(result["answer"])
+
+        else:
+            st.warning("Please enter both context and question.")
+
+
+st.divider()
+
+st.caption(
+    "Built using Python, Streamlit and Hugging Face Transformers"
+)
