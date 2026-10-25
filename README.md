@@ -2,6 +2,8 @@
 
 A Streamlit-based application that summarizes long articles and paragraphs using a pre-trained Hugging Face Transformers model.
 
+app link:https://text-summarization-2ymaygccmnh5ekdwtpbl3x.streamlit.app/
+
 ## Features
 
 - Text summarization
