@@ -10,21 +10,64 @@ st.title("🤗 Hugging Face Pipelines")
 st.write("Summarization, Translation, Sentiment Analysis and Question Answering")
 
 
+@st.cache_resource
+def load_summarizer():
+    return pipeline(
+        "summarization",
+        model="sshleifer/distilbart-cnn-12-6"
+    )
+
+
+@st.cache_resource
+def load_translator(language):
+    models = {
+        "French": "Helsinki-NLP/opus-mt-en-fr",
+        "German": "Helsinki-NLP/opus-mt-en-de",
+        "Hindi": "Helsinki-NLP/opus-mt-en-hi"
+    }
+
+    return pipeline(
+        "translation",
+        model=models[language]
+    )
+
+
+@st.cache_resource
+def load_sentiment():
+    return pipeline("sentiment-analysis")
+
+
+@st.cache_resource
+def load_question_answerer():
+    return pipeline(
+        "question-answering",
+        model="distilbert-base-cased-distilled-squad"
+    )
+
+
+option = st.selectbox(
+    "Choose a task",
+    [
+        "Summarization",
+        "Translation",
+        "Sentiment Analysis",
+        "Question Answering"
+    ]
+)
+
+
 # Summarization
-if st.button("Summarization"):
+if option == "Summarization":
 
-    text = st.text_area("Enter text to summarize", key="summary_text")
+    text = st.text_area("Enter text to summarize")
 
-    if st.button("Summarize", key="summarize"):
+    if st.button("Summarize"):
 
-        if text:
+        if text.strip():
 
-            with st.spinner("Loading summarization model..."):
+            with st.spinner("Generating summary..."):
 
-                summarizer = pipeline(
-                    "summarization",
-                    model="sshleifer/distilbart-cnn-12-6"
-                )
+                summarizer = load_summarizer()
 
                 result = summarizer(
                     text,
@@ -42,42 +85,22 @@ if st.button("Summarization"):
 
 
 # Translation
-elif st.button("Translation"):
+elif option == "Translation":
 
     language = st.selectbox(
         "Choose target language",
         ["French", "German", "Hindi"]
     )
 
-    text = st.text_area(
-        "Enter English text",
-        key="translation_text"
-    )
+    text = st.text_area("Enter English text")
 
-    if st.button("Translate", key="translate"):
+    if st.button("Translate"):
 
-        if text:
+        if text.strip():
 
-            with st.spinner("Loading translation model..."):
+            with st.spinner("Translating..."):
 
-                if language == "French":
-                    translator = pipeline(
-                        "translation",
-                        model="Helsinki-NLP/opus-mt-en-fr"
-                    )
-
-                elif language == "German":
-                    translator = pipeline(
-                        "translation",
-                        model="Helsinki-NLP/opus-mt-en-de"
-                    )
-
-                else:
-                    translator = pipeline(
-                        "translation",
-                        model="Helsinki-NLP/opus-mt-en-hi"
-                    )
-
+                translator = load_translator(language)
                 result = translator(text)
 
             st.subheader("Translation")
@@ -88,23 +111,17 @@ elif st.button("Translation"):
 
 
 # Sentiment Analysis
-elif st.button("Sentiment Analysis"):
+elif option == "Sentiment Analysis":
 
-    text = st.text_area(
-        "Enter text",
-        key="sentiment_text"
-    )
+    text = st.text_area("Enter text")
 
-    if st.button("Analyze Sentiment", key="sentiment"):
+    if st.button("Analyze Sentiment"):
 
-        if text:
+        if text.strip():
 
-            with st.spinner("Loading sentiment model..."):
+            with st.spinner("Analyzing sentiment..."):
 
-                sentiment = pipeline(
-                    "sentiment-analysis"
-                )
-
+                sentiment = load_sentiment()
                 result = sentiment(text)
 
             st.subheader("Sentiment")
@@ -119,28 +136,19 @@ elif st.button("Sentiment Analysis"):
 
 
 # Question Answering
-elif st.button("Question Answering"):
+elif option == "Question Answering":
 
-    context = st.text_area(
-        "Enter context",
-        key="context"
-    )
+    context = st.text_area("Enter context")
 
-    question = st.text_input(
-        "Enter your question",
-        key="question"
-    )
+    question = st.text_input("Enter your question")
 
-    if st.button("Get Answer", key="answer"):
+    if st.button("Get Answer"):
 
-        if context and question:
+        if context.strip() and question.strip():
 
-            with st.spinner("Loading question answering model..."):
+            with st.spinner("Finding answer..."):
 
-                question_answerer = pipeline(
-                    "question-answering",
-                    model="distilbert-base-cased-distilled-squad"
-                )
+                question_answerer = load_question_answerer()
 
                 result = question_answerer(
                     question=question,
